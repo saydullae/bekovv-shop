@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Békovv Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#8D6B37;--secondary:#F5F1E9;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--bg:#0a0e27;--bg2:#151937;--text:#fff;--muted:#9ca3af;--gold:#C1A46C}
+        body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
+        body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 20% 30%,rgba(141,107,55,.15),transparent 50%),radial-gradient(circle at 80% 70%,rgba(245,241,233,.1),transparent 50%);pointer-events:none;z-index:0}
+        header{position:fixed;top:0;left:0;right:0;backdrop-filter:blur(20px);background:rgba(10,14,39,.9);border-bottom:1px solid rgba(141,107,55,.2);padding:10px 14px;z-index:100}
+        .header-content{display:flex;justify-content:space-between;align-items:center}
+        .logo{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .header-actions{display:flex;align-items:center;gap:8px}
+        .lang-selector{display:flex;background:rgba(141,107,55,.2);border-radius:6px;overflow:hidden}
+        .lang-btn{padding:5px 8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:9px;font-weight:600}
+        .lang-btn.active{background:var(--primary);color:#fff}
+        .icon-btn{position:relative;font-size:16px;color:var(--primary);background:none;border:none;padding:6px;cursor:pointer}
+        .badge{position:absolute;top:0;right:0;background:var(--danger);color:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800}
+        .user-avatar{width:28px;height:28px;border-radius:50%;border:2px solid var(--primary);object-fit:cover}
+        main{padding:60px 10px 85px;position:relative;z-index:1}
+        .section{display:none}.section.active{display:block;animation:fadeIn .3s}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        h2{font-size:18px;font-weight:700;margin-bottom:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .tg-info{background:linear-gradient(135deg,rgba(0,136,204,.2),rgba(0,136,204,.1));border:1px solid rgba(0,136,204,.3);border-radius:10px;padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:11px}
+        .tg-info i{color:#0088cc;font-size:18px}
+        .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+        .quick-action{background:rgba(21,25,55,.6);border-radius:10px;padding:10px 4px;text-align:center;border:1px solid rgba(141,107,55,.15)}
+        .quick-action i{font-size:16px;color:var(--primary);margin-bottom:3px;display:block}
+        .quick-action span{font-size:8px;color:var(--muted)}
+        .search-box{background:rgba(21,25,55,.6);border:1px solid rgba(141,107,55,.2);border-radius:10px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+        .search-box input{flex:1;background:none;border:none;color:#fff;font-size:12px;outline:none}
+        .category-pills{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .category-pill{padding:5px 10px;background:rgba(141,107,55,.2);border:none;border-radius:16px;color:#fff;font-size:10px;white-space:nowrap;flex-shrink:0}
+        .category-pill.active{background:var(--primary)}
+        .product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .product-card{background:rgba(21,25,55,.6);border-radius:12px;padding:8px;border:1px solid rgba(141,107,55,.15);position:relative}
+        .product-image{width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:6px}
+        .product-name{font-size:10px;font-weight:600;margin-bottom:3px;height:26px;overflow:hidden;line-height:1.3}
+        .product-price{font-size:13px;font-weight:800;margin-bottom:5px;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .old-price{font-size:9px;color:var(--muted);text-decoration:line-through;margin-left:4px}
+        .add-btn{width:100%;padding:6px;background:linear-gradient(135deg,var(--primary),var(--gold));border:none;border-radius:6px;color:#fff;font-weight:600;font-size:10px}
+        .add-btn.added{background:linear-gradient(135deg,var(--success),#059669)}
+        .wishlist-btn{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;width:24px;height:24px;border-radius:50%;color:#fff;font-size:10px}
+        .wishlist-btn.active{background:var(--danger)}
+        .btn-primary{width:100%;padding:10px;background:linear-gradient(135deg,var(--primary),var(--gold));border:none;border-radius:10px;color:#fff;font-weight:600;font-size:12px}
+        .btn-primary:disabled{opacity:.5}
+        .input-field{width:100%;padding:10px;margin-bottom:8px;background:rgba(21,25,55,.6);border:1px solid rgba(141,107,55,.2);border-radius:8px;color:var(--text);font-size:12px}
+        .input-field:focus{outline:none;border-color:var(--primary)}
+        .input-field.error{border-color:var(--danger)}
+        .error-hint{color:var(--danger);font-size:9px;margin-top:-4px;margin-bottom:6px}
+        nav{position:fixed;bottom:0;left:0;right:0;backdrop-filter:blur(20px);background:rgba(10,14,39,.95);border-top:1px solid rgba(141,107,55,.2);padding:6px 0;z-index:100}
+        .nav-content{display:flex;justify-content:space-around}
+        .nav-btn{background:none;border:none;color:var(--muted);font-size:14px;padding:4px 10px;display:flex;flex-direction:column;align-items:center;gap:1px}
+        .nav-btn span{font-size:8px}
+        .nav-btn.active{color:var(--primary)}
+        .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;padding:12px}
+        .modal.active{display:flex}
+        .modal-content{background:rgba(21,25,55,.98);border-radius:16px;padding:16px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;position:relative;border:1px solid rgba(141,107,55,.2)}
+        .modal-close{position:absolute;top:10px;right:10px;background:rgba(239,68,68,.2);border:none;width:26px;height:26px;border-radius:50%;color:#fff;font-size:12px}
+        .cart-item,.order-card{background:rgba(21,25,55,.6);border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid rgba(141,107,55,.15)}
+        .empty-state{text-align:center;padding:30px;color:var(--muted)}
+        .empty-icon{font-size:32px;margin-bottom:10px;opacity:.3}
+        .notification{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 16px;border-radius:10px;z-index:10000;font-size:11px;font-weight:600}
+        .status{padding:3px 8px;border-radius:10px;font-size:8px;font-weight:700;text-transform:uppercase}
+        .status.pending{background:rgba(245,158,11,.2);color:var(--warning)}
+        .status.confirmed{background:rgba(141,107,55,.2);color:var(--primary)}
+        .status.completed{background:rgba(16,185,129,.2);color:var(--success)}
+        .status.cancelled{background:rgba(239,68,68,.2);color:var(--danger)}
+        .message-bubble{background:rgba(141,107,55,.15);padding:8px 10px;border-radius:8px;margin-bottom:5px;border-left:3px solid var(--primary);font-size:11px}
+        .message-bubble.admin{background:rgba(16,185,129,.15);border-left-color:var(--success)}
+        .profile-card{background:rgba(21,25,55,.6);border-radius:12px;padding:14px}
+        .feature-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px}
+        .feature-card{background:rgba(21,25,55,.6);border-radius:8px;padding:10px;text-align:center;border:1px solid rgba(141,107,55,.15)}
+        .feature-card i{font-size:16px;color:var(--primary);margin-bottom:4px}
+        .feature-card h4{font-size:10px}
+        .feature-card p{font-size:8px;color:var(--muted)}
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <div class="logo"><i class="fas fa-gem"></i><span>Békovv</span></div>
+        <div class="header-actions">
+            <div class="lang-selector">
+                <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+                <button class="lang-btn" data-lang="uz" onclick="setLang('uz')">UZ</button>
+            </div>
+            <button class="icon-btn" onclick="showSection('wishlist')"><i class="fas fa-heart"></i><span class="badge" id="wish-badge" style="display:none">0</span></button>
+            <button class="icon-btn" onclick="showCart()"><i class="fas fa-shopping-cart"></i><span class="badge" id="cart-badge">0</span></button>
+            <img class="user-avatar" id="user-avatar" src="https://ui-avatars.com/api/?name=U&background=8D6B37&color=fff" onclick="showProfile()">
+        </div>
+    </div>
+</header>
+
+<main>
+    <section id="home" class="section active">
+        <div id="tg-welcome" class="tg-info" style="display:none"><i class="fab fa-telegram"></i><div><strong id="tg-name">Welcome!</strong><br><span style="color:var(--muted)">Telegram Mini App</span></div></div>
+        <div class="quick-actions">
+            <div class="quick-action" onclick="showSection('orders')"><i class="fas fa-box"></i><span>Orders</span></div>
+            <div class="quick-action" onclick="showSection('wishlist')"><i class="fas fa-heart"></i><span>Wishlist</span></div>
+            <div class="quick-action" onclick="showSection('messages')"><i class="fas fa-headset"></i><span>Support</span></div>
+            <div class="quick-action" onclick="showProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
+        </div>
+        <div class="search-box"><i class="fas fa-search" style="color:var(--muted)"></i><input type="text" id="search-input" placeholder="Search products..." oninput="filterProducts()"></div>
+        <div class="category-pills" id="category-pills"></div>
+        <div id="products" class="product-grid"><div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i></div></div>
+    </section>
+
+    <section id="cart" class="section">
+        <h2><i class="fas fa-shopping-cart"></i> Cart</h2>
+        <div id="cart-items"></div>
+        <div style="background:rgba(21,25,55,.6);border-radius:10px;padding:12px;margin:10px 0;text-align:center">
+            <h3 style="font-size:18px">Total: <span style="color:var(--primary);font-weight:900">$<span id="cart-total">0</span></span></h3>
+        </div>
+        <button class="btn-primary" onclick="proceedToCheckout()"><i class="fas fa-credit-card"></i> Checkout</button>
+    </section>
+
+    <section id="wishlist" class="section">
+        <h2><i class="fas fa-heart"></i> Wishlist</h2>
+        <div id="wishlist-items" class="product-grid"></div>
+    </section>
+
+    <section id="orders" class="section">
+        <h2><i class="fas fa-box"></i> My Orders</h2>
+        <div id="orders-list"></div>
+    </section>
+
+    <section id="profile" class="section">
+        <h2><i class="fas fa-user-circle"></i> Profile</h2>
+        <div id="profile-status-bar"></div>
+        <div class="profile-card">
+            <div style="text-align:center;margin-bottom:12px">
+                <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=8D6B37&color=fff" style="width:60px;height:60px;border-radius:50%;border:2px solid var(--primary);object-fit:cover">
+                <input type="file" id="avatar-upload" accept="image/*" style="display:none">
+            </div>
+            <label style="color:var(--muted);font-size:9px">Name *</label>
+            <input type="text" id="profile-name" class="input-field" placeholder="Enter name">
+            <div class="error-hint" id="name-error" style="display:none">Name required</div>
+            <label style="color:var(--muted);font-size:9px">Email</label>
+            <input type="email" id="profile-email" class="input-field" placeholder="Enter email">
+            <label style="color:var(--muted);font-size:9px">Phone *</label>
+            <input type="tel" id="profile-phone" class="input-field" placeholder="Enter phone">
+            <div class="error-hint" id="phone-error" style="display:none">Phone required</div>
+            <label style="color:var(--muted);font-size:9px">Address *</label>
+            <input type="text" id="profile-address" class="input-field" placeholder="Enter address">
+            <div class="error-hint" id="address-error" style="display:none">Address required</div>
+            <button class="btn-primary" onclick="saveProfile()"><i class="fas fa-save"></i> Save</button>
+            <div class="feature-cards">
+                <div class="feature-card" onclick="showSection('orders')"><i class="fas fa-history"></i><h4>History</h4><p>View orders</p></div>
+                <div class="feature-card" onclick="showSection('messages')"><i class="fas fa-headset"></i><h4>Support</h4><p>Get help</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="messages" class="section">
+        <h2><i class="fas fa-comments"></i> Support</h2>
+        <div style="background:rgba(21,25,55,.6);border-radius:10px;padding:12px">
+            <div id="chat-messages" style="max-height:250px;overflow-y:auto;margin-bottom:8px"></div>
+            <div style="display:flex;gap:6px">
+                <input type="text" id="message-input" class="input-field" placeholder="Type message..." style="margin:0">
+                <button class="btn-primary" onclick="sendMessage()" style="width:auto;padding:0 14px"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div class="modal" id="product-modal"><div class="modal-content"><button class="modal-close" onclick="closeModal('product-modal')"><i class="fas fa-times"></i></button><div id="product-detail"></div></div></div>
+
+<div class="modal" id="payment-modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('payment-modal')"><i class="fas fa-times"></i></button>
+        <h2 style="text-align:center;margin-bottom:8px;font-size:16px">💳 Payment</h2>
+        <p style="text-align:center;color:var(--muted);font-size:11px">Order #<span id="payment-order-id">-</span></p>
+        <div style="font-size:28px;font-weight:900;text-align:center;margin:8px 0;color:var(--primary)">$<span id="payment-total">0</span></div>
+        <div style="background:rgba(21,25,55,.6);border-radius:8px;padding:10px;margin:8px 0;font-size:11px">
+            <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Bank:</span><strong id="payment-bank">-</strong></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Card:</span><strong id="payment-card-number">-</strong><button onclick="copyCard()" style="background:var(--primary);border:none;padding:3px 6px;border-radius:4px;color:#fff;font-size:9px;margin-left:4px"><i class="fas fa-copy"></i></button></div>
+        </div>
+        <div style="border:2px dashed rgba(141,107,55,.3);border-radius:8px;padding:14px;text-align:center" onclick="document.getElementById('receipt-input').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size:24px;color:var(--primary)"></i>
+            <p style="font-size:10px;margin-top:4px">Upload receipt</p>
+        </div>
+        <input type="file" id="receipt-input" accept="image/*" style="display:none" onchange="previewReceipt(this)">
+        <div id="receipt-preview" style="display:none;text-align:center;margin:8px 0"><p style="color:var(--success);font-size:10px">✓ Selected</p><img id="preview-img" style="max-width:100%;max-height:100px;border-radius:6px"></div>
+        <button class="btn-primary" id="confirm-payment-btn" disabled onclick="confirmPayment()"><i class="fas fa-check"></i> Confirm</button>
+    </div>
+</div>
+
+<nav>
+    <div class="nav-content">
+        <button class="nav-btn active" data-section="home" onclick="showSection('home')"><i class="fas fa-home"></i><span>Home</span></button>
+        <button class="nav-btn" data-section="cart" onclick="showCart()"><i class="fas fa-shopping-cart"></i><span>Cart</span></button>
+        <button class="nav-btn" data-section="orders" onclick="showSection('orders')"><i class="fas fa-box"></i><span>Orders</span></button>
+        <button class="nav-btn" data-section="messages" onclick="showSection('messages')"><i class="fas fa-comments"></i><span>Chat</span></button>
+        <button class="nav-btn" data-section="profile" onclick="showProfile()"><i class="fas fa-user"></i><span>Profile</span></button>
+    </div>
+</nav>
+
+<script>
+// ⚠️ IMPORTANT: Change this to your backend URL
+const API = 'https://bekovv-api.onrender.com'; // Change to: https://your-api.railway.app
+
+// Telegram WebApp
+const tg = window.Telegram?.WebApp;
+let tgUser = null;
+let userId = localStorage.getItem('uid') || 'user_' + Date.now();
+
+// State
+let cart = [], wishlist = [], allProducts = [], currentOrderId = null, selectedReceipt = null;
+let lang = localStorage.getItem('lang') || 'en';
+
+// Initialize
+function init() {
+    if (tg) {
+        tg.ready();
+        tg.expand();
+        
+        tgUser = tg.initDataUnsafe?.user;
+        if (tgUser) {
+            userId = 'tg_' + tgUser.id;
+            localStorage.setItem('uid', userId);
+            
+            document.getElementById('tg-welcome').style.display = 'flex';
+            document.getElementById('tg-name').textContent = 'Welcome, ' + (tgUser.first_name || 'User') + '!';
+            
+            const avatar = tgUser.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tgUser.first_name||'U')}&background=8D6B37&color=fff`;
+            document.getElementById('user-avatar').src = avatar;
+            document.getElementById('profile-avatar').src = avatar;
+            
+            if (tgUser.first_name) {
+                document.getElementById('profile-name').value = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+            }
+        }
+        
+        tg.BackButton.onClick(() => {
+            if (!document.getElementById('home').classList.contains('active')) {
+                showSection('home');
+            }
+        });
+    }
+    
+    if (!localStorage.getItem('uid')) localStorage.setItem('uid', userId);
+    loadCartData();
+    loadProducts();
+    loadProfile();
+    setLang(lang);
+}
+
+// Language
+function setLang(l) {
+    lang = l;
+    localStorage.setItem('lang', l);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === l));
+    renderProducts(allProducts);
+}
+
+// Navigation
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+    document.querySelector(`.nav-btn[data-section="${id}"]`)?.classList.add('active');
+    
+    if (tg) {
+        if (id === 'home') tg.BackButton.hide();
+        else tg.BackButton.show();
+    }
+    
+    if (id === 'orders') loadOrders();
+    if (id === 'messages') loadMessages();
+    if (id === 'wishlist') loadWishlist();
+}
+
+function showCart() { showSection('cart'); renderCart(); }
+function showProfile() { showSection('profile'); loadProfile(); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Products
+async function loadProducts() {
+    try {
+        const r = await fetch(`${API}/api/products?lang=${lang}`);
+        allProducts = await r.json();
+        renderProducts(allProducts);
+        renderCategories();
+    } catch(e) {
+        document.getElementById('products').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle empty-icon"></i><p>Failed to load</p></div>';
+    }
+}
+
+function renderProducts(products) {
+    const c = document.getElementById('products');
+    if (!products.length) {
+        c.innerHTML = '<div class="empty-state"><i class="fas fa-box-open empty-icon"></i><p>No products</p></div>';
+        return;
+    }
+    c.innerHTML = products.map(p => {
+        const inCart = cart.find(i => i.id === p.id);
+        const inWish = wishlist.includes(p.id);
+        const name = lang==='ru'&&p.name_ru?p.name_ru:lang==='uz'&&p.name_uz?p.name_uz:p.name;
+        const price = p.discount_price || p.price;
+        return `<div class="product-card">
+            <button class="wishlist-btn ${inWish?'active':''}" onclick="toggleWishlist(${p.id})"><i class="fas fa-heart"></i></button>
+            <img src="${p.image}" class="product-image" onclick="showProduct(${p.id})" onerror="this.src='https://via.placeholder.com/150'">
+            <div class="product-name" onclick="showProduct(${p.id})">${name}</div>
+            <div class="product-price">$${price}${p.discount_price?`<span class="old-price">$${p.price}</span>`:''}</div>
+            <button class="add-btn ${inCart?'added':''}" onclick="addToCart(${p.id},'${name.replace(/'/g,"\\'")}',${price},'${p.image}')">
+                <i class="fas fa-${inCart?'check':'cart-plus'}"></i> ${inCart?'Added':'Add'}
+            </button>
+        </div>`;
+    }).join('');
+}
+
+function renderCategories() {
+    const cats = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+    document.getElementById('category-pills').innerHTML = `<button class="category-pill active" onclick="filterCat('')">All</button>` + cats.map(c => `<button class="category-pill" onclick="filterCat('${c}')">${c}</button>`).join('');
+}
+
+function filterProducts() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
+}
+
+function filterCat(cat) {
+    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    renderProducts(cat ? allProducts.filter(p => p.category === cat) : allProducts);
+}
+
+async function showProduct(id) {
+    const r = await fetch(`${API}/api/products/${id}`);
+    const p = await r.json();
+    const name = lang==='ru'&&p.name_ru?p.name_ru:lang==='uz'&&p.name_uz?p.name_uz:p.name;
+    const desc = lang==='ru'&&p.description_ru?p.description_ru:lang==='uz'&&p.description_uz?p.description_uz:p.description;
+    document.getElementById('product-detail').innerHTML = `
+        <img src="${p.image}" style="width:100%;height:200px;object-fit:cover;border-radius:12px;margin-bottom:12px" onerror="this.src='https://via.placeholder.com/300'">
+        <h2 style="font-size:16px;margin-bottom:8px">${name}</h2>
+        <p style="color:var(--muted);font-size:11px;margin-bottom:12px">${desc||''}</p>
+        <p style="color:${p.stock>0?'var(--success)':'var(--danger)'};font-size:10px;margin-bottom:10px"><i class="fas fa-${p.stock>0?'check':'times'}-circle"></i> ${p.stock>0?'In Stock ('+p.stock+')':'Out of Stock'}</p>
+        <div style="font-size:24px;font-weight:900;margin:12px 0;color:var(--primary)">$${p.discount_price||p.price}</div>
+        <button class="btn-primary" onclick="addToCart(${p.id},'${name.replace(/'/g,"\\'")}',${p.discount_price||p.price},'${p.image}');closeModal('product-modal')"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
+    document.getElementById('product-modal').classList.add('active');
+}
+
+// Cart
+function addToCart(id, name, price, image) {
+    const e = cart.find(i => i.id === id);
+    if (e) e.qty++;
+    else cart.push({id, name, price, image, qty: 1});
+    saveCart();
+    updateBadges();
+    notify('Added to cart!');
+    renderProducts(allProducts);
+}
+
+function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); }
+
+function loadCartData() {
+    const s = localStorage.getItem('cart');
+    if (s) cart = JSON.parse(s);
+    updateBadges();
+}
+
+function renderCart() {
+    const c = document.getElementById('cart-items');
+    if (!cart.length) {
+        c.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-cart empty-icon"></i><p>Your cart is empty</p></div>';
+        document.getElementById('cart-total').textContent = '0.00';
+        return;
+    }
+    let total = 0;
+    c.innerHTML = cart.map(i => {
+        total += i.price * i.qty;
+        return `<div class="cart-item">
+            <div style="display:flex;gap:10px;margin-bottom:8px">
+                <img src="${i.image}" style="width:40px;height:40px;border-radius:6px;object-fit:cover">
+                <div style="flex:1">
+                    <strong style="font-size:11px">${i.name}</strong>
+                    <div style="color:var(--muted);font-size:10px">${i.price} × ${i.qty}</div>
+                </div>
+                <button onclick="removeFromCart(${i.id})" style="background:var(--danger);border:none;width:24px;height:24px;border-radius:50%;color:#fff;font-size:10px"><i class="fas fa-trash"></i></button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+                <button onclick="updateQty(${i.id},-1)" style="width:28px;height:28px;border-radius:6px;border:none;background:var(--primary);color:#fff;font-size:10px"><i class="fas fa-minus"></i></button>
+                <span style="font-weight:700;min-width:20px;text-align:center;font-size:12px">${i.qty}</span>
+                <button onclick="updateQty(${i.id},1)" style="width:28px;height:28px;border-radius:6px;border:none;background:var(--primary);color:#fff;font-size:10px"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+    document.getElementById('cart-total').textContent = total.toFixed(2);
+}
+
+function updateQty(id, d) {
+    const i = cart.find(x => x.id === id);
+    if (i) {
+        i.qty += d;
+        if (i.qty <= 0) cart = cart.filter(x => x.id !== id);
+        saveCart();
+        renderCart();
+        updateBadges();
+    }
+}
+
+function removeFromCart(id) {
+    cart = cart.filter(i => i.id !== id);
+    saveCart();
+    renderCart();
+    updateBadges();
+}
+
+function updateBadges() {
+    document.getElementById('cart-badge').textContent = cart.reduce((s, i) => s + i.qty, 0);
+    const w = document.getElementById('wish-badge');
+    w.textContent = wishlist.length;
+    w.style.display = wishlist.length ? 'flex' : 'none';
+}
+
+// Wishlist
+async function loadWishlist() {
+    try {
+        const r = await fetch(`${API}/api/wishlist/${userId}`);
+        const items = await r.json();
+        wishlist = items.map(i => i.id);
+        renderWishlistItems(items);
+        updateBadges();
+    } catch(e) {}
+}
+
+function renderWishlistItems(items) {
+    const c = document.getElementById('wishlist-items');
+    if (!items.length) {
+        c.innerHTML = '<div class="empty-state"><i class="fas fa-heart empty-icon"></i><p>Wishlist is empty</p></div>';
+        return;
+    }
+    c.innerHTML = items.map(p => {
+        const name = lang==='ru'&&p.name_ru?p.name_ru:lang==='uz'&&p.name_uz?p.name_uz:p.name;
+        return `<div class="product-card">
+            <button class="wishlist-btn active" onclick="toggleWishlist(${p.id})"><i class="fas fa-heart"></i></button>
+            <img src="${p.image}" class="product-image" onclick="showProduct(${p.id})">
+            <div class="product-name">${name}</div>
+            <div class="product-price">${p.discount_price||p.price}</div>
+            <button class="add-btn" onclick="addToCart(${p.id},'${name.replace(/'/g,"\\'")}',${p.discount_price||p.price},'${p.image}')"><i class="fas fa-cart-plus"></i> Add</button>
+        </div>`;
+    }).join('');
+}
+
+async function toggleWishlist(id) {
+    try {
+        const r = await fetch(`${API}/api/wishlist/${userId}/${id}`, {method: 'POST'});
+        const d = await r.json();
+        if (d.action === 'added') wishlist.push(id);
+        else wishlist = wishlist.filter(i => i !== id);
+        updateBadges();
+        renderProducts(allProducts);
+        loadWishlist();
+    } catch(e) {}
+}
+
+// Checkout
+async function proceedToCheckout() {
+    if (!cart.length) {
+        notify('Cart is empty', 'error');
+        return;
+    }
+    
+    try {
+        const r = await fetch(`${API}/api/user/${userId}/check-profile`);
+        const d = await r.json();
+        if (!d.completed) {
+            notify('Please complete your profile', 'error');
+            showProfile();
+            return;
+        }
+    } catch(e) {
+        notify('Please complete your profile', 'error');
+        showProfile();
+        return;
+    }
+    
+    const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    
+    try {
+        const sr = await fetch(`${API}/api/settings/payment`);
+        const s = await sr.json();
+        document.getElementById('payment-bank').textContent = s.payment_bank_name;
+        document.getElementById('payment-card-number').textContent = s.payment_card_number;
+        
+        const or = await fetch(`${API}/api/orders`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                telegram_id: userId,
+                items: cart,
+                total_amount: total
+            })
+        });
+        
+        const od = await or.json();
+        if (or.ok && od.order_number) {
+            currentOrderId = od.order_id;
+            document.getElementById('payment-order-id').textContent = od.order_number;
+            document.getElementById('payment-total').textContent = total.toFixed(2);
+            document.getElementById('payment-modal').classList.add('active');
+        } else {
+            notify('Error creating order', 'error');
+        }
+    } catch(e) {
+        notify('Error', 'error');
+    }
+}
+
+function copyCard() {
+    const card = document.getElementById('payment-card-number').textContent;
+    navigator.clipboard.writeText(card.replace(/\s/g, ''));
+    notify('Card number copied!');
+}
+
+function previewReceipt(input) {
+    const f = input.files[0];
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) {
+        notify('File too large (max 5MB)', 'error');
+        return;
+    }
+    selectedReceipt = f;
+    const r = new FileReader();
+    r.onload = e => {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('receipt-preview').style.display = 'block';
+        document.getElementById('confirm-payment-btn').disabled = false;
+    };
+    r.readAsDataURL(f);
+}
+
+async function confirmPayment() {
+    if (!selectedReceipt || !currentOrderId) return;
+    
+    const btn = document.getElementById('confirm-payment-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    btn.disabled = true;
+    
+    const r = new FileReader();
+    r.onload = async ev => {
+        try {
+            const res = await fetch(`${API}/api/orders/${currentOrderId}/receipt-base64`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({image: ev.target.result})
+            });
+            
+            if (res.ok) {
+                cart = [];
+                saveCart();
+                renderCart();
+                updateBadges();
+                closeModal('payment-modal');
+                notify('Payment submitted successfully!');
+                showSection('orders');
+                selectedReceipt = null;
+                document.getElementById('receipt-preview').style.display = 'none';
+                document.getElementById('receipt-input').value = '';
+            } else {
+                notify('Error uploading receipt', 'error');
+            }
+        } catch(err) {
+            notify('Error', 'error');
+        }
+        btn.innerHTML = '<i class="fas fa-check"></i> Confirm';
+        btn.disabled = true;
+    };
+    r.readAsDataURL(selectedReceipt);
+}
+
+// Orders
+async function loadOrders() {
+    try {
+        const r = await fetch(`${API}/api/orders/${userId}`);
+        const orders = await r.json();
+        const c = document.getElementById('orders-list');
+        
+        if (!orders.length) {
+            c.innerHTML = '<div class="empty-state"><i class="fas fa-box-open empty-icon"></i><p>No orders yet</p></div>';
+            return;
+        }
+        
+        c.innerHTML = orders.map(o => `<div class="order-card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+                <div>
+                    <h3 style="font-size:12px;font-weight:700">Order #${o.order_number || o.id}</h3>
+                    <small style="color:var(--muted);font-size:9px">${new Date(o.created_at).toLocaleString()}</small>
+                </div>
+                <span class="status ${o.status}">${o.status}</span>
+            </div>
+            <div style="margin-bottom:8px">
+                ${o.items.map(i => `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10px;color:var(--muted)">
+                    <span>${i.name} × ${i.qty}</span>
+                    <span>${(i.price * i.qty).toFixed(2)}</span>
+                </div>`).join('')}
+            </div>
+            ${o.payment_receipt ? `<div style="margin:6px 0">
+                <img src="${API}${o.payment_receipt}" style="max-width:80px;border-radius:6px;border:2px solid var(--primary)" onclick="window.open('${API}${o.payment_receipt}','_blank')">
+                <p style="color:var(--success);font-size:9px;margin-top:3px">✓ Receipt uploaded</p>
+            </div>` : ''}
+            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;padding-top:6px;border-top:1px solid rgba(255,255,255,.1)">
+                <span>Total:</span>
+                <span style="color:var(--primary)">${o.total_amount.toFixed(2)}</span>
+            </div>
+        </div>`).join('');
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// Profile
+async function loadProfile() {
+    try {
+        const r = await fetch(`${API}/api/user/${userId}`);
+        const d = await r.json();
+        
+        if (d.avatar) {
+            document.getElementById('user-avatar').src = API + d.avatar;
+            document.getElementById('profile-avatar').src = API + d.avatar;
+        }
+        
+        document.getElementById('profile-name').value = d.name || '';
+        document.getElementById('profile-email').value = d.email || '';
+        document.getElementById('profile-phone').value = d.phone || '';
+        document.getElementById('profile-address').value = d.address || '';
+        
+        updateProfileStatus();
+    } catch(e) {}
+}
+
+function updateProfileStatus() {
+    const n = document.getElementById('profile-name').value.trim();
+    const p = document.getElementById('profile-phone').value.trim();
+    const a = document.getElementById('profile-address').value.trim();
+    const ok = n && p && a;
+    
+    document.getElementById('profile-status-bar').innerHTML = ok
+        ? '<div style="background:rgba(16,185,129,.15);border:2px solid var(--success);border-radius:8px;padding:8px;margin-bottom:10px;display:flex;align-items:center;gap:8px"><i class="fas fa-check-circle" style="color:var(--success);font-size:16px"></i><span style="font-size:11px"><strong>Profile Complete</strong></span></div>'
+        : '<div style="background:rgba(239,68,68,.15);border:2px solid var(--danger);border-radius:8px;padding:8px;margin-bottom:10px;display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-circle" style="color:var(--danger);font-size:16px"></i><span style="font-size:11px"><strong>Complete your profile</strong></span></div>';
+}
+
+async function saveProfile() {
+    const n = document.getElementById('profile-name');
+    const p = document.getElementById('profile-phone');
+    const a = document.getElementById('profile-address');
+    
+    let valid = true;
+    [['name', n], ['phone', p], ['address', a]].forEach(([k, el]) => {
+        const err = document.getElementById(k + '-error');
+        if (!el.value.trim()) {
+            el.classList.add('error');
+            err.style.display = 'block';
+            valid = false;
+        } else {
+            el.classList.remove('error');
+            err.style.display = 'none';
+        }
+    });
+    
+    if (!valid) return;
+    
+    try {
+        await fetch(`${API}/api/user/${userId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                telegram_id: userId,
+                name: n.value,
+                email: document.getElementById('profile-email').value,
+                phone: p.value,
+                address: a.value,
+                language: lang
+            })
+        });
+        notify('Profile saved!');
+        updateProfileStatus();
+    } catch(e) {
+        notify('Error saving profile', 'error');
+    }
+}
+
+document.getElementById('avatar-upload').addEventListener('change', async function(e) {
+    const f = e.target.files[0];
+    if (!f || f.size > 5 * 1024 * 1024) {
+        notify('File too large', 'error');
+        return;
+    }
+    
+    const r = new FileReader();
+    r.onload = async ev => {
+        try {
+            const res = await fetch(`${API}/api/user/${userId}/avatar`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({image: ev.target.result})
+            });
+            const d = await res.json();
+            if (d.avatar_url) {
+                document.getElementById('user-avatar').src = API + d.avatar_url;
+                document.getElementById('profile-avatar').src = API + d.avatar_url;
+                notify('Avatar updated!');
+            }
+        } catch(err) {
+            notify('Error', 'error');
+        }
+    };
+    r.readAsDataURL(f);
+});
+
+// Messages
+async function loadMessages() {
+    try {
+        const r = await fetch(`${API}/api/messages/${userId}`);
+        const msgs = await r.json();
+        const c = document.getElementById('chat-messages');
+        
+        if (!msgs.length) {
+            c.innerHTML = '<div class="empty-state" style="padding:20px"><p style="font-size:10px">No messages yet</p></div>';
+            return;
+        }
+        
+        c.innerHTML = msgs.map(m => `<div class="message-bubble ${m.is_from_admin ? 'admin' : ''}">
+            <div style="font-weight:600;font-size:9px;color:var(--muted);margin-bottom:3px">${m.is_from_admin ? '👨‍💼 Support' : '👤 You'}</div>
+            <div style="font-size:11px">${m.message}</div>
+            <small style="color:var(--muted);font-size:8px">${new Date(m.created_at).toLocaleString()}</small>
+        </div>`).join('');
+        
+        c.scrollTop = c.scrollHeight;
+    } catch(e) {}
+}
+
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    
+    try {
+        await fetch(`${API}/api/messages`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                telegram_id: userId,
+                message: msg,
+                is_from_admin: false
+            })
+        });
+        input.value = '';
+        loadMessages();
+        notify('Message sent!');
+    } catch(e) {
+        notify('Error', 'error');
+    }
+}
+
+document.getElementById('message-input').addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// Utils
+function notify(msg, type = 'success') {
+    const n = document.createElement('div');
+    n.className = 'notification';
+    if (type === 'error') n.style.background = 'var(--danger)';
+    n.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i> ${msg}`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
+}
+
+// Initialize app
+init();
+setInterval(() => {
+    if (document.getElementById('messages').classList.contains('active')) loadMessages();
+}, 30000);
+</script>
+</body>
+</html>

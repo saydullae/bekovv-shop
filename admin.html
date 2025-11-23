@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Békovv Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0e27;--bg2:#151937;--text:#fff;--muted:#9ca3af;--primary:#8D6B37;--secondary:#F5F1E9;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--gold:#C1A46C}
+        body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text)}
+        body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 20% 30%,rgba(141,107,55,.15),transparent 50%),radial-gradient(circle at 80% 70%,rgba(245,241,233,.1),transparent 50%);pointer-events:none;z-index:0}
+        #login{display:flex;align-items:center;justify-content:center;min-height:100vh;position:relative;z-index:1}
+        .login-box{background:rgba(21,25,55,.9);backdrop-filter:blur(20px);border-radius:24px;padding:40px;max-width:400px;width:100%;border:1px solid rgba(141,107,55,.3)}
+        .login-logo{text-align:center;margin-bottom:24px}
+        .login-logo i{font-size:40px;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .login-logo h1{font-size:28px;font-family:'Playfair Display',serif;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;margin-top:8px}
+        .lang-selector{display:flex;justify-content:center;gap:8px;margin-bottom:20px}
+        .lang-btn{padding:8px 16px;background:rgba(141,107,55,.2);border:none;border-radius:8px;color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;transition:.3s}
+        .lang-btn.active{background:var(--primary);color:#fff}
+        .container{display:none;height:100vh;position:relative;z-index:1}
+        .container.active{display:flex}
+        .sidebar{width:240px;background:rgba(21,25,55,.7);backdrop-filter:blur(20px);border-right:1px solid rgba(141,107,55,.2);padding:16px;overflow-y:auto;flex-shrink:0}
+        .logo{font-size:24px;font-weight:900;margin-bottom:24px;font-family:'Playfair Display',serif;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:8px;letter-spacing:2px}
+        .admin-info{background:rgba(141,107,55,.1);border-radius:12px;padding:12px;margin-bottom:16px;border:1px solid rgba(141,107,55,.2)}
+        .admin-info .name{font-weight:700;font-size:13px}
+        .admin-info .role{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:4px}
+        .admin-info .role i{color:var(--success);font-size:8px}
+        .nav-item{padding:12px 14px;margin-bottom:4px;border-radius:12px;cursor:pointer;transition:.3s;display:flex;align-items:center;gap:10px;font-weight:500;font-size:13px}
+        .nav-item:hover{background:rgba(141,107,55,.1);transform:translateX(4px)}
+        .nav-item.active{background:linear-gradient(135deg,var(--primary),var(--gold))}
+        .nav-item i{font-size:16px;width:20px}
+        .main{flex:1;padding:20px;overflow-y:auto}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+        h1{font-size:26px;font-weight:900;font-family:'Playfair Display',serif;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+        .stat-card{background:rgba(21,25,55,.6);padding:20px;border-radius:16px;border:1px solid rgba(141,107,55,.15);transition:.3s;position:relative}
+        .stat-card:hover{transform:translateY(-4px);border-color:var(--primary)}
+        .stat-card h3{color:var(--muted);font-size:11px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+        .stat-card .value{font-size:30px;font-weight:900;font-family:'Playfair Display',serif;background:linear-gradient(135deg,var(--primary),var(--secondary));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stat-card .icon{position:absolute;top:16px;right:16px;font-size:24px;opacity:.15}
+        .section{display:none}.section.active{display:block}
+        .table-container{background:rgba(21,25,55,.6);border-radius:16px;overflow:hidden;border:1px solid rgba(141,107,55,.15)}
+        table{width:100%;border-collapse:collapse}
+        th{background:linear-gradient(135deg,rgba(141,107,55,.2),rgba(196,164,108,.2));padding:12px;text-align:left;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:1px}
+        td{padding:12px;border-top:1px solid rgba(141,107,55,.1);font-size:13px}
+        tr:hover{background:rgba(141,107,55,.1)}
+        .btn{padding:10px 20px;border:none;border-radius:10px;font-weight:600;cursor:pointer;transition:.3s;display:inline-flex;align-items:center;gap:6px;font-family:'Poppins',sans-serif;font-size:12px}
+        .btn:hover{transform:translateY(-2px)}
+        .btn-primary{background:linear-gradient(135deg,var(--primary),var(--gold));color:#fff}
+        .btn-success{background:linear-gradient(135deg,var(--success),#059669);color:#fff}
+        .btn-danger{background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff}
+        .btn-sm{padding:6px 12px;font-size:11px}
+        .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;padding:16px}
+        .modal.active{display:flex}
+        .modal-content{background:rgba(21,25,55,.95);padding:28px;border-radius:20px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;position:relative;border:1px solid rgba(141,107,55,.2)}
+        .modal-close{position:absolute;top:16px;right:16px;background:rgba(239,68,68,.2);border:none;width:32px;height:32px;border-radius:50%;color:#fff;font-size:16px;cursor:pointer}
+        .modal-close:hover{background:var(--danger)}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;margin-bottom:6px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;background:rgba(30,33,57,.6);border:2px solid rgba(141,107,55,.2);border-radius:10px;color:var(--text);font-size:13px;font-family:'Poppins',sans-serif}
+        .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+        .form-group.error input,.form-group.error textarea{border-color:var(--danger);animation:shake .5s}
+        .form-group .hint{color:var(--danger);font-size:10px;margin-top:4px;display:none}
+        .form-group.error .hint{display:block}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+        .status{padding:5px 12px;border-radius:16px;font-size:10px;font-weight:700;text-transform:uppercase}
+        .status.pending{background:rgba(245,158,11,.2);color:var(--warning)}
+        .status.confirmed{background:rgba(141,107,55,.2);color:var(--primary)}
+        .status.completed{background:rgba(16,185,129,.2);color:var(--success)}
+        .status.cancelled{background:rgba(239,68,68,.2);color:var(--danger)}
+        .product-img,.user-avatar{width:45px;height:45px;object-fit:cover;border-radius:10px}
+        .user-avatar{border-radius:50%}
+        .chart-container{background:rgba(21,25,55,.6);border-radius:16px;padding:20px;margin-bottom:20px;border:1px solid rgba(141,107,55,.15)}
+        .badge{background:var(--primary);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-left:6px}
+        .settings-card{background:rgba(21,25,55,.6);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(141,107,55,.15)}
+        .settings-card h3{margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--primary)}
+        .conversation-card{background:rgba(21,25,55,.6);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:.3s;border:1px solid rgba(141,107,55,.15)}
+        .conversation-card:hover{transform:translateX(4px);border-color:var(--primary)}
+        .message-bubble{background:rgba(141,107,55,.15);padding:10px 14px;border-radius:12px;margin-bottom:8px;border-left:3px solid var(--primary)}
+        .message-bubble.admin{background:rgba(16,185,129,.15);border-left-color:var(--success)}
+        .upload-area{border:2px dashed rgba(141,107,55,.3);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:.3s}
+        .upload-area:hover{border-color:var(--primary);background:rgba(141,107,55,.05)}
+        .upload-area i{font-size:32px;color:var(--primary);margin-bottom:8px}
+        .preview-img{max-width:100%;max-height:150px;border-radius:10px;margin-top:10px}
+        .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+        .feature-card{background:rgba(21,25,55,.6);border-radius:12px;padding:16px;text-align:center;border:1px solid rgba(141,107,55,.15);cursor:pointer;transition:.3s}
+        .feature-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+        .feature-card i{font-size:24px;color:var(--primary);margin-bottom:8px}
+        .feature-card h4{font-size:12px;margin-bottom:4px}
+        .feature-card p{font-size:10px;color:var(--muted)}
+        .receipt-img{max-width:80px;border-radius:8px;border:2px solid var(--primary);cursor:pointer}
+        .secure-badge{display:flex;align-items:center;gap:8px;justify-content:center;padding:10px;background:rgba(16,185,129,.1);border-radius:10px;margin-bottom:16px;font-size:11px;color:var(--success)}
+    </style>
+</head>
+<body>
+<div id="login">
+    <div class="login-box">
+        <div class="login-logo"><i class="fas fa-shield-alt"></i><h1>Admin Panel</h1></div>
+        <div class="lang-selector">
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+            <button class="lang-btn" data-lang="uz" onclick="setLang('uz')">UZ</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center;padding:10px;background:rgba(16,185,129,.1);border-radius:10px;margin-bottom:16px;font-size:11px;color:var(--success)"><i class="fas fa-lock"></i> Secure Connection</div>
+        <form id="login-form">
+            <div class="form-group"><label data-t="username">Username</label><input type="text" id="login-user" required autocomplete="off"></div>
+            <div class="form-group"><label data-t="password">Password</label><input type="password" id="login-pass" required></div>
+            <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-sign-in-alt"></i> <span data-t="login">Login</span></button>
+        </form>
+        <div id="login-error" style="color:var(--danger);text-align:center;margin-top:12px;display:none;font-size:12px"></div>
+    </div>
+</div>
+
+<div class="container" id="dashboard">
+    <div class="sidebar">
+        <div class="logo"><i class="fas fa-gem"></i> Békovv</div>
+        <div class="admin-info"><div class="name" id="admin-name">Admin</div><div class="role"><i class="fas fa-circle" style="color:var(--success);font-size:6px"></i> Online</div></div>
+        <div class="lang-selector" style="margin-bottom:16px">
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+            <button class="lang-btn" data-lang="uz" onclick="setLang('uz')">UZ</button>
+        </div>
+        <div class="nav-item active" data-section="home"><i class="fas fa-chart-line"></i> <span data-t="dashboard">Dashboard</span></div>
+        <div class="nav-item" data-section="products"><i class="fas fa-box-open"></i> <span data-t="products">Products</span></div>
+        <div class="nav-item" data-section="orders"><i class="fas fa-shopping-bag"></i> <span data-t="orders">Orders</span></div>
+        <div class="nav-item" data-section="users"><i class="fas fa-users"></i> <span data-t="users">Users</span></div>
+        <div class="nav-item" data-section="messages"><i class="fas fa-comments"></i> <span data-t="messages">Messages</span> <span class="badge" id="unread-badge" style="display:none">0</span></div>
+        <div class="nav-item" data-section="settings"><i class="fas fa-cog"></i> <span data-t="settings">Settings</span></div>
+        <div class="nav-item" onclick="logout()" style="margin-top:16px;color:var(--danger)"><i class="fas fa-sign-out-alt"></i> <span data-t="logout">Logout</span></div>
+    </div>
+    <div class="main">
+        <!-- Dashboard -->
+        <div class="section active" id="home">
+            <div class="header"><h1><i class="fas fa-chart-line"></i> <span data-t="dashboard">Dashboard</span></h1><button class="btn btn-primary btn-sm" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i></button></div>
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-dollar-sign icon"></i><h3 data-t="revenue">Revenue</h3><div class="value" id="stat-revenue">$0</div></div>
+                <div class="stat-card"><i class="fas fa-shopping-cart icon"></i><h3 data-t="orders">Orders</h3><div class="value" id="stat-orders">0</div></div>
+                <div class="stat-card"><i class="fas fa-users icon"></i><h3 data-t="users">Users</h3><div class="value" id="stat-users">0</div></div>
+                <div class="stat-card"><i class="fas fa-box icon"></i><h3 data-t="products">Products</h3><div class="value" id="stat-products">0</div></div>
+            </div>
+            <div class="chart-container"><h3 style="margin-bottom:16px"><i class="fas fa-chart-area"></i> <span data-t="revenue_chart">Revenue (30 Days)</span></h3><canvas id="revenueChart" height="80"></canvas></div>
+            <div class="feature-grid">
+                <div class="feature-card" onclick="showSection('orders')"><i class="fas fa-clock"></i><h4 data-t="pending_orders">Pending Orders</h4><p data-t="manage_orders">Manage orders</p></div>
+                <div class="feature-card" onclick="showSection('products')"><i class="fas fa-plus-circle"></i><h4 data-t="add_product">Add Product</h4><p data-t="new_product">Create new</p></div>
+                <div class="feature-card" onclick="showSection('messages')"><i class="fas fa-envelope"></i><h4 data-t="messages">Messages</h4><p data-t="customer_support">Customer support</p></div>
+                <div class="feature-card" onclick="showSection('users')"><i class="fas fa-user-plus"></i><h4 data-t="users">Users</h4><p data-t="view_customers">View customers</p></div>
+            </div>
+            <div class="table-container" style="margin-top:20px">
+                <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)"><h3 style="font-size:14px"><i class="fas fa-clock"></i> <span data-t="recent_orders">Recent Orders</span></h3></div>
+                <table><thead><tr><th data-t="order">Order</th><th data-t="customer">Customer</th><th data-t="amount">Amount</th><th data-t="status">Status</th><th data-t="time">Time</th></tr></thead><tbody id="recent-orders"></tbody></table>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="section" id="products">
+            <div class="header"><h1><i class="fas fa-box-open"></i> <span data-t="products">Products</span></h1><button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> <span data-t="add_product">Add Product</span></button></div>
+            <div class="table-container"><table><thead><tr><th data-t="image">Image</th><th data-t="name">Name</th><th data-t="category">Category</th><th data-t="price">Price</th><th data-t="stock">Stock</th><th data-t="actions">Actions</th></tr></thead><tbody id="products-table"></tbody></table></div>
+        </div>
+
+        <!-- Orders -->
+        <div class="section" id="orders">
+            <div class="header"><h1><i class="fas fa-shopping-bag"></i> <span data-t="orders">Orders</span></h1></div>
+            <div class="table-container"><table><thead><tr><th>#</th><th data-t="customer">Customer</th><th data-t="contact">Contact</th><th data-t="total">Total</th><th data-t="status">Status</th><th data-t="date">Date</th><th data-t="receipt">Receipt</th></tr></thead><tbody id="orders-table"></tbody></table></div>
+        </div>
+
+        <!-- Users -->
+        <div class="section" id="users">
+            <div class="header"><h1><i class="fas fa-users"></i> <span data-t="users">Users</span></h1></div>
+            <div class="table-container"><table><thead><tr><th>Avatar</th><th data-t="name">Name</th><th data-t="contact">Contact</th><th data-t="orders">Orders</th><th data-t="spent">Spent</th><th data-t="joined">Joined</th></tr></thead><tbody id="users-table"></tbody></table></div>
+        </div>
+
+        <!-- Messages -->
+        <div class="section" id="messages">
+            <div class="header"><h1><i class="fas fa-comments"></i> <span data-t="messages">Messages</span></h1></div>
+            <div id="conversations-list"></div>
+        </div>
+
+        <!-- Settings -->
+        <div class="section" id="settings">
+            <div class="header"><h1><i class="fas fa-cog"></i> <span data-t="settings">Settings</span></h1></div>
+            <div class="settings-card"><h3><i class="fas fa-key"></i> <span data-t="change_password">Change Password</span></h3>
+                <div class="form-group"><label data-t="current_password">Current Password</label><input type="password" id="old-pass"></div>
+                <div class="form-group"><label data-t="new_password">New Password</label><input type="password" id="new-pass"></div>
+                <div class="form-group"><label data-t="confirm_password">Confirm Password</label><input type="password" id="confirm-pass"></div>
+                <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-save"></i> <span data-t="change">Change</span></button>
+            </div>
+            <div class="settings-card"><h3><i class="fas fa-credit-card"></i> <span data-t="payment_settings">Payment Settings</span></h3>
+                <div class="form-group"><label data-t="bank_name">Bank Name</label><input type="text" id="pay-bank"></div>
+                <div class="form-group"><label data-t="card_number">Card Number</label><input type="text" id="pay-card"></div>
+                <div class="form-group"><label data-t="card_owner">Card Owner</label><input type="text" id="pay-owner"></div>
+                <button class="btn btn-success" onclick="savePaymentSettings()"><i class="fas fa-save"></i> <span data-t="save">Save</span></button>
+            </div>
+            <div class="settings-card"><h3><i class="fas fa-user-plus"></i> <span data-t="create_admin">Create Admin</span></h3>
+                <div class="form-group"><label data-t="username">Username</label><input type="text" id="new-admin-user"></div>
+                <div class="form-group"><label data-t="password">Password</label><input type="password" id="new-admin-pass"></div>
+                <button class="btn btn-primary" onclick="createAdmin()"><i class="fas fa-user-plus"></i> <span data-t="create">Create</span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal" id="product-modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('product-modal')"><i class="fas fa-times"></i></button>
+        <h2 id="product-modal-title" style="margin-bottom:16px" data-t="add_product">Add Product</h2>
+        <input type="hidden" id="product-edit-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="form-group"><label>Name (EN) *</label><input type="text" id="p-name"><div class="hint" data-t="required">Required</div></div>
+            <div class="form-group"><label>Name (RU)</label><input type="text" id="p-name-ru"></div>
+            <div class="form-group"><label>Name (UZ)</label><input type="text" id="p-name-uz"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="form-group"><label>Description (EN)</label><textarea id="p-desc" rows="2"></textarea></div>
+            <div class="form-group"><label>Description (RU)</label><textarea id="p-desc-ru" rows="2"></textarea></div>
+            <div class="form-group"><label>Description (UZ)</label><textarea id="p-desc-uz" rows="2"></textarea></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group"><label data-t="price">Price ($) *</label><input type="number" id="p-price" step="0.01"><div class="hint" data-t="required">Required</div></div>
+            <div class="form-group"><label data-t="discount_price">Discount Price</label><input type="number" id="p-discount" step="0.01"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="form-group"><label>Category (EN)</label><input type="text" id="p-cat"></div>
+            <div class="form-group"><label>Category (RU)</label><input type="text" id="p-cat-ru"></div>
+            <div class="form-group"><label>Category (UZ)</label><input type="text" id="p-cat-uz"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group"><label data-t="brand">Brand</label><input type="text" id="p-brand"></div>
+            <div class="form-group"><label data-t="stock">Stock *</label><input type="number" id="p-stock"><div class="hint" data-t="required">Required</div></div>
+        </div>
+        <div class="form-group">
+            <label data-t="product_image">Product Image *</label>
+            <div class="upload-area" onclick="document.getElementById('p-image-file').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p style="font-size:12px" data-t="click_upload">Click to upload image</p>
+            </div>
+            <input type="file" id="p-image-file" accept="image/*" style="display:none" onchange="previewProductImage(this)">
+            <img id="p-image-preview" class="preview-img" style="display:none">
+            <input type="hidden" id="p-image">
+            <div class="hint" data-t="required">Required</div>
+        </div>
+        <button class="btn btn-success" onclick="saveProduct()" style="width:100%"><i class="fas fa-save"></i> <span data-t="save_product">Save Product</span></button>
+    </div>
+</div>
+
+<!-- Chat Modal -->
+<div class="modal" id="chat-modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('chat-modal')"><i class="fas fa-times"></i></button>
+        <h2 style="margin-bottom:16px"><span data-t="chat_with">Chat with</span> <span id="chat-user-name">User</span></h2>
+        <div id="admin-chat-messages" style="max-height:300px;overflow-y:auto;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px">
+            <input type="text" id="admin-msg-input" style="flex:1;padding:10px;background:rgba(30,33,57,.6);border:2px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px" placeholder="Type message...">
+            <button class="btn btn-primary" onclick="adminSendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+const API='https://bekovv-api.onrender.com';
+let token=localStorage.getItem('admin_token'),currentChatUser=null,lang=localStorage.getItem('admin_lang')||'en';
+
+// Translations
+const T={
+    en:{dashboard:'Dashboard',products:'Products',orders:'Orders',users:'Users',messages:'Messages',settings:'Settings',logout:'Logout',revenue:'Revenue',add_product:'Add Product',save:'Save',change:'Change',username:'Username',password:'Password',login:'Login',customer:'Customer',amount:'Amount',status:'Status',time:'Time',recent_orders:'Recent Orders',payment_settings:'Payment Settings',bank_name:'Bank Name',card_number:'Card Number',card_owner:'Card Owner',change_password:'Change Password',current_password:'Current Password',new_password:'New Password',confirm_password:'Confirm Password',create_admin:'Create Admin',create:'Create',name:'Name',category:'Category',price:'Price',stock:'Stock',actions:'Actions',image:'Image',contact:'Contact',spent:'Spent',joined:'Joined',total:'Total',date:'Date',receipt:'Receipt',edit:'Edit',delete:'Delete',required:'Required',click_upload:'Click to upload image',save_product:'Save Product',chat_with:'Chat with',no_messages:'No messages',discount_price:'Discount Price',brand:'Brand',product_image:'Product Image',revenue_chart:'Revenue (30 Days)',pending_orders:'Pending Orders',manage_orders:'Manage orders',new_product:'Create new',customer_support:'Customer support',view_customers:'View customers',order:'Order'},
+    ru:{dashboard:'Панель',products:'Товары',orders:'Заказы',users:'Пользователи',messages:'Сообщения',settings:'Настройки',logout:'Выход',revenue:'Доход',add_product:'Добавить товар',save:'Сохранить',change:'Изменить',username:'Логин',password:'Пароль',login:'Войти',customer:'Клиент',amount:'Сумма',status:'Статус',time:'Время',recent_orders:'Последние заказы',payment_settings:'Настройки оплаты',bank_name:'Название банка',card_number:'Номер карты',card_owner:'Владелец карты',change_password:'Изменить пароль',current_password:'Текущий пароль',new_password:'Новый пароль',confirm_password:'Подтвердите пароль',create_admin:'Создать админа',create:'Создать',name:'Имя',category:'Категория',price:'Цена',stock:'Наличие',actions:'Действия',image:'Фото',contact:'Контакт',spent:'Потрачено',joined:'Регистрация',total:'Итого',date:'Дата',receipt:'Чек',edit:'Редактировать',delete:'Удалить',required:'Обязательно',click_upload:'Нажмите для загрузки',save_product:'Сохранить товар',chat_with:'Чат с',no_messages:'Нет сообщений',discount_price:'Цена со скидкой',brand:'Бренд',product_image:'Фото товара',revenue_chart:'Доход (30 дней)',pending_orders:'Ожидающие заказы',manage_orders:'Управление заказами',new_product:'Создать новый',customer_support:'Поддержка',view_customers:'Просмотр клиентов',order:'Заказ'},
+    uz:{dashboard:'Boshqaruv',products:'Mahsulotlar',orders:'Buyurtmalar',users:'Foydalanuvchilar',messages:'Xabarlar',settings:'Sozlamalar',logout:'Chiqish',revenue:'Daromad',add_product:'Mahsulot qo\'shish',save:'Saqlash',change:'O\'zgartirish',username:'Login',password:'Parol',login:'Kirish',customer:'Mijoz',amount:'Summa',status:'Holat',time:'Vaqt',recent_orders:'Oxirgi buyurtmalar',payment_settings:'To\'lov sozlamalari',bank_name:'Bank nomi',card_number:'Karta raqami',card_owner:'Karta egasi',change_password:'Parolni o\'zgartirish',current_password:'Joriy parol',new_password:'Yangi parol',confirm_password:'Parolni tasdiqlang',create_admin:'Admin yaratish',create:'Yaratish',name:'Ism',category:'Kategoriya',price:'Narx',stock:'Mavjudligi',actions:'Amallar',image:'Rasm',contact:'Aloqa',spent:'Sarflangan',joined:'Qo\'shilgan',total:'Jami',date:'Sana',receipt:'Chek',edit:'Tahrirlash',delete:'O\'chirish',required:'Majburiy',click_upload:'Yuklash uchun bosing',save_product:'Mahsulotni saqlash',chat_with:'Chat',no_messages:'Xabarlar yo\'q',discount_price:'Chegirma narxi',brand:'Brend',product_image:'Mahsulot rasmi',revenue_chart:'Daromad (30 kun)',pending_orders:'Kutilayotgan',manage_orders:'Buyurtmalarni boshqarish',new_product:'Yangi yaratish',customer_support:'Qo\'llab-quvvatlash',view_customers:'Mijozlarni ko\'rish',order:'Buyurtma'}
+};
+
+function setLang(l){lang=l;localStorage.setItem('admin_lang',l);document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));document.querySelectorAll('[data-t]').forEach(el=>el.textContent=T[lang][el.dataset.t]||el.textContent);}
+
+// Auth
+if(!token)document.getElementById('login').style.display='flex';
+else verifyAuth();
+
+document.getElementById('login-form').addEventListener('submit',async e=>{
+    e.preventDefault();
+    try{
+        const r=await fetch(`${API}/api/admin/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('login-user').value,password:document.getElementById('login-pass').value})});
+        if(r.ok){const d=await r.json();token=d.token;localStorage.setItem('admin_token',token);localStorage.setItem('admin_user',d.username);document.getElementById('login').style.display='none';document.getElementById('dashboard').classList.add('active');document.getElementById('admin-name').textContent=d.username;loadDashboard();}
+        else{document.getElementById('login-error').textContent='Invalid credentials';document.getElementById('login-error').style.display='block';}
+    }catch(e){document.getElementById('login-error').textContent='Connection error';document.getElementById('login-error').style.display='block';}
+});
+
+async function verifyAuth(){
+    try{const r=await fetch(`${API}/api/admin/verify`,{headers:{Authorization:`Bearer ${token}`}});
+    if(r.ok){document.getElementById('login').style.display='none';document.getElementById('dashboard').classList.add('active');document.getElementById('admin-name').textContent=localStorage.getItem('admin_user')||'Admin';loadDashboard();}
+    else logout();}catch(e){logout();}
+}
+
+function logout(){localStorage.removeItem('admin_token');localStorage.removeItem('admin_user');token=null;document.getElementById('login').style.display='flex';document.getElementById('dashboard').classList.remove('active');}
+
+// Navigation
+document.querySelectorAll('.nav-item[data-section]').forEach(item=>{
+    item.addEventListener('click',()=>{
+        document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+        item.classList.add('active');
+        const sec=item.dataset.section;
+        document.getElementById(sec).classList.add('active');
+        if(sec==='home')loadDashboard();
+        if(sec==='products')loadProducts();
+        if(sec==='orders')loadOrders();
+        if(sec==='users')loadUsers();
+        if(sec==='messages')loadMessages();
+        if(sec==='settings')loadSettings();
+    });
+});
+
+function showSection(id){document.querySelector(`.nav-item[data-section="${id}"]`)?.click();}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+
+// Dashboard
+async function loadDashboard(){
+    try{
+        const r=await fetch(`${API}/api/stats`);const s=await r.json();
+        document.getElementById('stat-revenue').textContent = `+${s.revenue.toFixed(2)}`;
+        document.getElementById('stat-orders').textContent=s.orders;
+        document.getElementById('stat-users').textContent=s.users;
+        document.getElementById('stat-products').textContent=s.products;
+
+        const cr=await fetch(`${API}/api/admin/analytics/revenue?days=30`,{headers:{Authorization:`Bearer ${token}`}});
+        const cd=await cr.json();
+        const ctx=document.getElementById('revenueChart').getContext('2d');
+        if(window.revenueChart)window.revenueChart.destroy();
+        window.revenueChart=new Chart(ctx,{type:'line',data:{labels:cd.map(d=>new Date(d.date).toLocaleDateString('en',{month:'short',day:'numeric'})),datasets:[{label:'Revenue',data:cd.map(d=>d.revenue||0),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.1)',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false}}}}});
+
+        const or=await fetch(`${API}/api/orders`,{headers:{Authorization:`Bearer ${token}`}});
+        const orders=await or.json();
+        document.getElementById('recent-orders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><strong>#${o.order_number||o.id}</strong></td><td>${o.name||'N/A'}</td><td style="color:var(--success);font-weight:700">${o.total_amount.toFixed(2)}</td><td><span class="status ${o.status}">${o.status}</span></td><td style="font-size:11px">${new Date(o.created_at).toLocaleString()}</td></tr>`).join('');
+    }catch(e){console.error(e);}
+}
+
+// Products
+async function loadProducts(){
+    try{const r=await fetch(`${API}/api/products`);const products=await r.json();
+    document.getElementById('products-table').innerHTML=products.map(p=>`<tr>
+        <td><img src="${p.image?.startsWith('/')?API+p.image:p.image}" class="product-img" onerror="this.src='https://via.placeholder.com/50'"></td>
+        <td><strong>${p.name}</strong><br><small style="color:var(--muted)">${p.brand||''}</small></td>
+        <td>${p.category||'-'}</td>
+        <td>${p.discount_price?`<s style="color:var(--muted)">${p.price}</s> `:''}$<strong style="color:var(--success)">${p.discount_price||p.price}</strong></td>
+        <td>${p.stock}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button></td>
+    </tr>`).join('');}catch(e){console.error(e);}
+}
+
+let productImageData=null;
+function openProductModal(){
+    document.getElementById('product-modal-title').textContent=T[lang].add_product;
+    document.getElementById('product-edit-id').value='';
+    ['p-name','p-name-ru','p-name-uz','p-desc','p-desc-ru','p-desc-uz','p-price','p-discount','p-cat','p-cat-ru','p-cat-uz','p-brand','p-stock','p-image'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('p-image-preview').style.display='none';
+    productImageData=null;
+    document.querySelectorAll('.form-group').forEach(g=>g.classList.remove('error'));
+    document.getElementById('product-modal').classList.add('active');
+}
+
+function previewProductImage(input){
+    const f=input.files[0];if(!f)return;
+    if(f.size>5*1024*1024){alert('File too large (max 5MB)');return;}
+    const r=new FileReader();
+    r.onload=e=>{productImageData=e.target.result;document.getElementById('p-image-preview').src=e.target.result;document.getElementById('p-image-preview').style.display='block';};
+    r.readAsDataURL(f);
+}
+
+async function editProduct(id){
+    try{const r=await fetch(`${API}/api/products/${id}`);const p=await r.json();
+    document.getElementById('product-modal-title').textContent='Edit Product';
+    document.getElementById('product-edit-id').value=id;
+    document.getElementById('p-name').value=p.name||'';
+    document.getElementById('p-name-ru').value=p.name_ru||'';
+    document.getElementById('p-name-uz').value=p.name_uz||'';
+    document.getElementById('p-desc').value=p.description||'';
+    document.getElementById('p-desc-ru').value=p.description_ru||'';
+    document.getElementById('p-desc-uz').value=p.description_uz||'';
+    document.getElementById('p-price').value=p.price||'';
+    document.getElementById('p-discount').value=p.discount_price||'';
+    document.getElementById('p-cat').value=p.category||'';
+    document.getElementById('p-cat-ru').value=p.category_ru||'';
+    document.getElementById('p-cat-uz').value=p.category_uz||'';
+    document.getElementById('p-brand').value=p.brand||'';
+    document.getElementById('p-stock').value=p.stock||'';
+    document.getElementById('p-image').value=p.image||'';
+    if(p.image){document.getElementById('p-image-preview').src=p.image.startsWith('/')?API+p.image:p.image;document.getElementById('p-image-preview').style.display='block';}
+    productImageData=null;
+    document.getElementById('product-modal').classList.add('active');}catch(e){alert('Error loading product');}
+}
+
+async function saveProduct(){
+    const editId=document.getElementById('product-edit-id').value;
+    const name=document.getElementById('p-name').value.trim();
+    const price=parseFloat(document.getElementById('p-price').value);
+    const stock=parseInt(document.getElementById('p-stock').value);
+    
+    // Validation
+    let valid=true;
+    document.querySelectorAll('.form-group').forEach(g=>g.classList.remove('error'));
+    if(!name){document.getElementById('p-name').parentElement.classList.add('error');valid=false;}
+    if(!price||price<=0){document.getElementById('p-price').parentElement.classList.add('error');valid=false;}
+    if(isNaN(stock)||stock<0){document.getElementById('p-stock').parentElement.classList.add('error');valid=false;}
+    if(!editId&&!productImageData&&!document.getElementById('p-image').value){document.getElementById('p-image-file').parentElement.parentElement.classList.add('error');valid=false;}
+    if(!valid)return;
+
+    const product={name,name_ru:document.getElementById('p-name-ru').value,name_uz:document.getElementById('p-name-uz').value,description:document.getElementById('p-desc').value,description_ru:document.getElementById('p-desc-ru').value,description_uz:document.getElementById('p-desc-uz').value,price,discount_price:parseFloat(document.getElementById('p-discount').value)||null,category:document.getElementById('p-cat').value,category_ru:document.getElementById('p-cat-ru').value,category_uz:document.getElementById('p-cat-uz').value,brand:document.getElementById('p-brand').value,stock,image:document.getElementById('p-image').value};
+
+    try{
+        let productId=editId;
+        if(editId){
+            await fetch(`${API}/api/products/${editId}`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(product)});
+        }else{
+            const r=await fetch(`${API}/api/products`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(product)});
+            const d=await r.json();productId=d.id;
+        }
+        // Upload image if new
+        if(productImageData&&productId){
+            const ir=await fetch(`${API}/api/products/${productId}/upload-image`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({image:productImageData})});
+            if(ir.ok){const id=await ir.json();await fetch(`${API}/api/products/${productId}`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({...product,image:id.image_url})});}
+        }
+        closeModal('product-modal');loadProducts();alert('Product saved!');
+    }catch(e){alert('Error saving product');}
+}
+
+async function deleteProduct(id){if(!confirm('Delete this product?'))return;try{await fetch(`${API}/api/products/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});loadProducts();}catch(e){alert('Error');}}
+
+// Orders
+async function loadOrders(){
+    try{const r=await fetch(`${API}/api/orders`,{headers:{Authorization:`Bearer ${token}`}});const orders=await r.json();
+    document.getElementById('orders-table').innerHTML=orders.map(o=>`<tr>
+        <td><strong>#${o.order_number||o.id}</strong></td>
+        <td>${o.name||'N/A'}</td>
+        <td><small>${o.phone||''}<br>${o.email||''}</small></td>
+        <td style="font-weight:700;color:var(--success)">${o.total_amount.toFixed(2)}</td>
+        <td><select onchange="updateOrderStatus(${o.id},this.value)" style="padding:6px 10px;background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:11px">
+            <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
+            <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Confirmed</option>
+            <option value="completed" ${o.status==='completed'?'selected':''}>Completed</option>
+            <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
+        </select></td>
+        <td style="font-size:11px">${new Date(o.created_at).toLocaleString()}</td>
+        <td>${o.payment_receipt?`<img src="${API}${o.payment_receipt}" class="receipt-img" onclick="window.open('${API}${o.payment_receipt}','_blank')" onerror="this.style.display='none'">`:'-'}</td>
+    </tr>`).join('');}catch(e){console.error(e);}
+}
+
+async function updateOrderStatus(id,status){try{await fetch(`${API}/api/orders/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({status})});alert('Status updated!');}catch(e){alert('Error');}}
+
+// Users
+async function loadUsers(){
+    try{const r=await fetch(`${API}/api/users`,{headers:{Authorization:`Bearer ${token}`}});const users=await r.json();
+    document.getElementById('users-table').innerHTML=users.map(u=>`<tr>
+        <td><img src="${u.avatar?API+u.avatar:`https://ui-avatars.com/api/?name=${encodeURIComponent(u.name||'U')}&background=6366f1&color=fff`}" class="user-avatar" onerror="this.src='https://ui-avatars.com/api/?name=U&background=6366f1&color=fff'"></td>
+        <td><strong>${u.name||'N/A'}</strong><br><small style="color:var(--muted)">${u.telegram_id}</small></td>
+        <td><small>${u.phone||''}<br>${u.email||''}</small></td>
+        <td style="color:var(--primary);font-weight:700">${u.order_count||0}</td>
+        <td style="color:var(--success);font-weight:700">${(u.total_spent||0).toFixed(2)}</td>
+        <td style="font-size:11px">${new Date(u.created_at).toLocaleDateString()}</td>
+    </tr>`).join('');}catch(e){console.error(e);}
+}
+
+// Messages
+async function loadMessages(){
+    try{const r=await fetch(`${API}/api/admin/messages`,{headers:{Authorization:`Bearer ${token}`}});const convs=await r.json();
+    const total=convs.reduce((s,c)=>s+(c.unread_count||0),0);
+    document.getElementById('unread-badge').textContent=total;
+    document.getElementById('unread-badge').style.display=total>0?'inline-flex':'none';
+    if(!convs.length){document.getElementById('conversations-list').innerHTML=`<div style="text-align:center;padding:50px;color:var(--muted)"><i class="fas fa-inbox" style="font-size:40px;opacity:.3"></i><p>${T[lang].no_messages}</p></div>`;return;}
+    document.getElementById('conversations-list').innerHTML=convs.map(c=>`<div class="conversation-card" onclick="openChat('${c.telegram_id}','${c.name||'User'}')">
+        <div style="display:flex;align-items:center;gap:12px">
+            <img src="${c.avatar?API+c.avatar:`https://ui-avatars.com/api/?name=${encodeURIComponent(c.name||'U')}&background=6366f1&color=fff`}" class="user-avatar" style="width:40px;height:40px">
+            <div style="flex:1"><strong>${c.name||'User'}</strong>${c.unread_count>0?`<span class="badge">${c.unread_count}</span>`:''}<br><small style="color:var(--muted)">${new Date(c.last_message_time).toLocaleString()}</small></div>
+            <i class="fas fa-chevron-right" style="color:var(--muted)"></i>
+        </div>
+    </div>`).join('');}catch(e){console.error(e);}
+}
+
+async function openChat(telegramId,name){
+    currentChatUser=telegramId;
+    document.getElementById('chat-user-name').textContent=name;
+    document.getElementById('chat-modal').classList.add('active');
+    await loadChatMessages(telegramId);
+}
+
+async function loadChatMessages(telegramId){
+    try{const r=await fetch(`${API}/api/messages/${telegramId}`);const msgs=await r.json();
+    document.getElementById('admin-chat-messages').innerHTML=msgs.map(m=>`<div class="message-bubble ${m.is_from_admin?'admin':''}"><div style="font-weight:600;font-size:10px;color:var(--muted);margin-bottom:4px">${m.is_from_admin?'👨‍💼 You':'👤 User'}</div><div style="font-size:12px">${m.message}</div><small style="color:var(--muted);font-size:9px">${new Date(m.created_at).toLocaleString()}</small></div>`).join('');
+    document.getElementById('admin-chat-messages').scrollTop=99999;}catch(e){console.error(e);}
+}
+
+async function adminSendMsg(){
+    const input=document.getElementById('admin-msg-input');const msg=input.value.trim();if(!msg||!currentChatUser)return;
+    try{await fetch(`${API}/api/admin/messages/${currentChatUser}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({message:msg})});input.value='';await loadChatMessages(currentChatUser);}catch(e){alert('Error');}
+}
+document.getElementById('admin-msg-input')?.addEventListener('keypress',e=>{if(e.key==='Enter')adminSendMsg();});
+
+// Settings
+function loadSettings(){
+    fetch(`${API}/api/settings/payment`).then(r=>r.json()).then(s=>{
+        document.getElementById('pay-bank').value=s.payment_bank_name||'';
+        document.getElementById('pay-card').value=s.payment_card_number||'';
+        document.getElementById('pay-owner').value=s.payment_card_owner||'';
+    });
+}
+
+async function savePaymentSettings(){
+    try{await fetch(`${API}/api/settings/payment`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({payment_bank_name:document.getElementById('pay-bank').value,payment_card_number:document.getElementById('pay-card').value,payment_card_owner:document.getElementById('pay-owner').value})});alert('Saved!');}catch(e){alert('Error');}
+}
+
+async function changePassword(){
+    const oldP=document.getElementById('old-pass').value,newP=document.getElementById('new-pass').value,confP=document.getElementById('confirm-pass').value;
+    if(!oldP||!newP){alert('Fill all fields');return;}
+    if(newP!==confP){alert('Passwords do not match');return;}
+    if(newP.length<6){alert('Password must be at least 6 characters');return;}
+    try{const r=await fetch(`${API}/api/admin/change-password`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({old_password:oldP,new_password:newP})});
+    if(r.ok){alert('Password changed! Please login again.');logout();}else{const d=await r.json();alert(d.detail||'Error');}}catch(e){alert('Error');}
+}
+
+async function createAdmin(){
+    const user=document.getElementById('new-admin-user').value.trim(),pass=document.getElementById('new-admin-pass').value;
+    if(!user||!pass){alert('Fill all fields');return;}
+    if(pass.length<6){alert('Password must be at least 6 characters');return;}
+    try{const r=await fetch(`${API}/api/admin/create`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({username:user,password:pass})});
+    if(r.ok){alert('Admin created!');document.getElementById('new-admin-user').value='';document.getElementById('new-admin-pass').value='';}else{const d=await r.json();alert(d.detail||'Error');}}catch(e){alert('Error');}
+}
+
+// Init
+setLang(lang);
+setInterval(()=>{if(document.getElementById('messages').classList.contains('active'))loadMessages();},30000);
+setInterval(()=>{if(document.getElementById('home').classList.contains('active'))loadDashboard();},60000);
+</script>
+</body>
+</html>
